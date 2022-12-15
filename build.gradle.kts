@@ -1,8 +1,11 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("java")
 }
 
 group = "github.christechs"
@@ -25,6 +28,16 @@ kotlin {
     sourceSets {
         val jvmMain by getting {
 
+            tasks.withType(Jar::class.java) {
+                manifest {
+                    attributes["Main-Class"] = "github.christechs.Main"
+                }
+            }
+
+            tasks.withType(ShadowJar::class.java) {
+                isZip64 = true
+            }
+
             dependencies {
 
                 implementation(compose.desktop.currentOs)
@@ -32,8 +45,6 @@ kotlin {
                 implementation("com.aspose:aspose-pdf:22.9:jdk17")
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-
-                implementation("com.guardsquare:proguard-gradle:7.3.0")
 
             }
         }
@@ -45,18 +56,18 @@ compose.desktop {
     application {
 
         buildTypes.release.proguard {
-            obfuscate.set(false)
+            configurationFiles.from(project.file("proguard-rules.pro"))
         }
 
         mainClass = "github.christechs.Main"
         nativeDistributions {
-            targetFormats(TargetFormat.AppImage)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Exe, TargetFormat.AppImage)
             packageName = "PDF Converter"
             packageVersion = "1.0.0"
             includeAllModules = true
             jvmArgs += listOf(
                 "-XX:+UseSerialGC",
-                "-Xms220M", "-Xmx220M"
+                "-Xms350M", "-Xmx350M"
             )
         }
     }
